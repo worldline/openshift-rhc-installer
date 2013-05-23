@@ -11,6 +11,8 @@
 
 ; MUI 1.67 compatible ------
 !include "MUI.nsh"
+!include LogicLib.nsh
+!include nsDialogs.nsh
 
 ; MUI Settings
 !define MUI_ABORTWARNING
@@ -28,6 +30,10 @@
 !insertmacro MUI_PAGE_LICENSE "LICENSE"
 ; Directory page
 !insertmacro MUI_PAGE_DIRECTORY
+
+Page custom proxyPage proxyPageLeave
+Page custom libraServerPage libraServerPageLeave
+
 ; Instfiles page
 !insertmacro MUI_PAGE_INSTFILES
 ; Finish page
@@ -40,14 +46,91 @@
 ; Language files
 !insertmacro MUI_LANGUAGE "English"
 
+; include for some of the windows messages defines
+!include "winmessages.nsh"
+; HKLM (all users) vs HKCU (current user) defines
+!define env_hklm 'HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"'
+!define env_hkcu 'HKCU "Environment"'
+
 ; MUI end ------
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 OutFile "Install.exe"
+XPStyle on
+
 InstallDir "$PROGRAMFILES\openshift-rhc"
 InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails show
 ShowUnInstDetails show
+
+
+
+Var proxyDialog
+Var proxyLabel
+Var proxyTextBox
+
+; dialog create function
+Function proxyPage
+  
+  ; === libra_server (type: Dialog) ===
+  nsDialogs::Create 1018
+  Pop $proxyDialog
+  ${If} $proxyDialog == error
+    Abort
+  ${EndIf}
+  !insertmacro MUI_HEADER_TEXT "Configure HTTP Proxy (for gem install)" ""
+  
+  ; === Label ===
+  ${NSD_CreateLabel} 8u 5u 91u 9u "HTTP Proxy"
+  Pop $proxyLabel
+  
+  ; === TextBox ===
+  ${NSD_CreateText} 8u 16u 124u 11u ""
+  Pop $proxyTextBox
+  nsDialogs::Show $proxyDialog
+FunctionEnd
+
+; dialog leave function
+Function proxyPageLeave
+  ${NSD_GetText} $proxyTextBox $0
+  ; set variable
+  WriteRegExpandStr ${env_hklm} "HTTP_PROXY" "$0"
+FunctionEnd
+
+
+
+
+Var libraServerDialog
+Var libraServerLabel
+Var libraServerTextBox
+
+; dialog create function
+Function libraServerPage
+  
+  ; === libra_server (type: Dialog) ===
+  nsDialogs::Create 1018
+  Pop $libraServerDialog
+  ${If} $libraServerDialog == error
+    Abort
+  ${EndIf}
+  !insertmacro MUI_HEADER_TEXT "Configure OpenShift RHC" ""
+  
+  ; === Label ===
+  ${NSD_CreateLabel} 8u 5u 91u 9u "OpenShift API URL"
+  Pop $libraServerLabel
+  
+  ; === TextBox ===
+  ${NSD_CreateText} 8u 16u 124u 11u ""
+  Pop $libraServerTextBox
+  nsDialogs::Show $libraServerDialog
+FunctionEnd
+
+; dialog leave function
+Function libraServerPageLeave
+  ${NSD_GetText} $libraServerTextBox $0
+  ; set variable
+  WriteRegExpandStr ${env_hklm} "LIBRA_SERVER" "$0"
+FunctionEnd
 
 Function .onInit
   !insertmacro MUI_LANGDLL_DISPLAY

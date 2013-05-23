@@ -11,5 +11,3 @@ Right click on rhc.nsi, then Compile NSIS Script
 ## Install RHC with the installer
 
 Once generated, execute Install.exe
-
-If you are under a proxy, make sure HTTP_PROXY is exported in your environment variables
