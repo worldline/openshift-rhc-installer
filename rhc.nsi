@@ -14,6 +14,9 @@
 !include LogicLib.nsh
 !include nsDialogs.nsh
 
+!addincludedir .\include
+!include EnvVarUpdate.nsh
+
 ; MUI Settings
 !define MUI_ABORTWARNING
 !define MUI_ICON "${NSISDIR}\Contrib\Graphics\Icons\modern-install.ico"
@@ -64,7 +67,7 @@ ShowInstDetails show
 ShowUnInstDetails show
 
 
-
+Var HTTP_PROXY
 Var proxyDialog
 Var proxyLabel
 Var proxyTextBox
@@ -92,12 +95,8 @@ FunctionEnd
 
 ; dialog leave function
 Function proxyPageLeave
-  ${NSD_GetText} $proxyTextBox $0
-  ; set variable
-  WriteRegExpandStr ${env_hklm} "HTTP_PROXY" "$0"
+  ${NSD_GetText} $proxyTextBox $HTTP_PROXY
 FunctionEnd
-
-
 
 
 Var libraServerDialog
@@ -159,6 +158,7 @@ Section "install ruby" SEC02
 	  ; execution of one click installer failed
 	  MessageBox MB_OK "ruby install failed."
     ${EndIf}
+	Delete "$INSTDIR\rubyinstaller.exe"
   ${Else}
     ; download not successfull
     MessageBox MB_OK "ruby download failed."
@@ -170,7 +170,11 @@ Section "install rhc" SEC03
    
   StrCpy $1 ''
   ; install rhc locally
-  ExecWait '"$INSTDIR\ruby\bin\gem.bat" install rhc --no-rdoc --no-ri' $1
+  ${If} $HTTP_PROXY == ''
+    ExecWait '"$INSTDIR\ruby\bin\gem.bat" install rhc --no-rdoc --no-ri' $1
+  ${Else}
+    ExecWait '"$INSTDIR\ruby\bin\gem.bat" install --http-proxy "$HTTP_PROXY" rhc --no-rdoc --no-ri' $1
+  ${EndIf}
   ${If} $1 == ''
     MessageBox MB_OK "Gem install failed. Please install the rhc gem manually"
   ${EndIf}
@@ -189,6 +193,7 @@ Section -Post
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayVersion" "${PRODUCT_VERSION}"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "URLInfoAbout" "${PRODUCT_WEB_SITE}"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "Publisher" "${PRODUCT_PUBLISHER}"
+  ${EnvVarUpdate} $0 "PATH" "A" "HKCU" "$INSTDIR"  
 SectionEnd
 
 
@@ -207,7 +212,7 @@ Section Uninstall
   Delete "$INSTDIR\${PRODUCT_NAME}.url"
   Delete "$INSTDIR\uninst.exe"
   Delete "$INSTDIR\rhc.bat"
-  Delete "$INSTDIR\rubyinstaller.exe"
+  RMDir /r "$INSTDIR\ruby"
 
   Delete "$SMPROGRAMS\rhc\Uninstall.lnk"
   Delete "$SMPROGRAMS\rhc\Website.lnk"
@@ -220,4 +225,5 @@ Section Uninstall
   DeleteRegKey ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}"
   DeleteRegKey HKLM "${PRODUCT_DIR_REGKEY}"
   SetAutoClose true
+  ${un.EnvVarUpdate} $0 "PATH" "R" "HKCU" "$INSTDIR"  
 SectionEnd
