@@ -71,6 +71,7 @@ Var HTTP_PROXY
 Var proxyDialog
 Var proxyLabel
 Var proxyTextBox
+Var proxyCheckbox
 
 ; dialog create function
 Function proxyPage
@@ -90,12 +91,23 @@ Function proxyPage
   ; === TextBox ===
   ${NSD_CreateText} 8u 16u 124u 11u ""
   Pop $proxyTextBox
+  
+  ; === Checkbox ===
+  ${NSD_CreateCheckbox} 8u 45u 250u 11u "&is OpenShift Server behind the proxy?"
+  Pop $proxyCheckbox
   nsDialogs::Show $proxyDialog
 FunctionEnd
 
 ; dialog leave function
 Function proxyPageLeave
-  ${NSD_GetText} $proxyTextBox $HTTP_PROXY
+  ${NSD_GetText} $proxyTextBox $HTTP_PROXY 
+  
+  ${NSD_GetState} $proxyCheckbox $0
+  ${If} $0 <> 0
+	WriteRegExpandStr ${env_hklm} "LIBRA_SERVER_PROXY" "$HTTP_PROXY"
+  ${Else}
+	WriteRegExpandStr ${env_hklm} "LIBRA_SERVER_PROXY" ""
+  ${EndIf}
 FunctionEnd
 
 
@@ -121,6 +133,8 @@ Function libraServerPage
   ; === TextBox ===
   ${NSD_CreateText} 8u 16u 124u 11u ""
   Pop $libraServerTextBox
+  
+  
   nsDialogs::Show $libraServerDialog
 FunctionEnd
 
@@ -138,6 +152,7 @@ FunctionEnd
 Section "copy files" SEC01
   SetOutPath "$INSTDIR"
   SetOverwrite ifnewer
+  File "rhc"
   File "rhc.bat"
   CreateDirectory "$SMPROGRAMS\OpenShift"
   CreateShortCut "$SMPROGRAMS\OpenShift\rhc.lnk" "$INSTDIR\rhc.bat"
@@ -233,6 +248,7 @@ Section Uninstall
   Delete "$INSTDIR\${PRODUCT_NAME}.url"
   Delete "$INSTDIR\uninst.exe"
   Delete "$INSTDIR\rhc.bat"
+  Delete "$INSTDIR\rhc"
   RMDir /r "$INSTDIR\ruby"
 
   Delete "$SMPROGRAMS\rhc\Uninstall.lnk"
