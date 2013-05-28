@@ -144,7 +144,28 @@ Section "copy files" SEC01
   CreateShortCut "$DESKTOP\rhc.lnk" "$INSTDIR\rhc.bat"
 SectionEnd
 
-Section "install ruby" SEC02
+Section "install git bash" SEC02
+  SetOutPath "$INSTDIR"
+  ; download and install
+  NSISdl::download "https://msysgit.googlecode.com/files/Git-1.8.1.2-preview20130201.exe" "gitinstaller.exe"
+  Pop $R0
+  ${If} $R0 == 'success'
+    ; download successful
+    StrCpy $0 ''
+    ; run the one click installer
+    ExecWait '"gitinstaller.exe" /silent /nocancel /noicons' $0
+    ${If} $0 == ''
+	  ; execution of one click installer failed
+	  MessageBox MB_OK "git install failed."
+    ${EndIf}
+	Delete "$INSTDIR\gitinstaller.exe"
+  ${Else}
+    ; download not successfull
+    MessageBox MB_OK "git download failed."
+  ${EndIf}
+SectionEnd
+
+Section "install ruby" SEC03
   SetOutPath "$INSTDIR"
   ; download and install
   NSISdl::download "http://rubyforge.org/frs/download.php/76952/rubyinstaller-1.9.3-p429.exe" "rubyinstaller.exe"
@@ -165,7 +186,7 @@ Section "install ruby" SEC02
   ${EndIf}
 SectionEnd
 
-Section "install rhc" SEC03
+Section "install rhc" SEC04
   SetOutPath "$INSTDIR"
    
   StrCpy $1 ''
