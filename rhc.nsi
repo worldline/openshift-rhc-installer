@@ -162,7 +162,7 @@ SectionEnd
 Section "install git bash" SEC02
   SetOutPath "$INSTDIR"
   ; download and install
-  NSISdl::download "https://msysgit.googlecode.com/files/Git-1.8.1.2-preview20130201.exe" "gitinstaller.exe"
+  NSISdl::download /PROXY "$HTTP_PROXY" "https://msysgit.googlecode.com/files/Git-1.8.1.2-preview20130201.exe" "gitinstaller.exe"
   Pop $R0
   ${If} $R0 == 'success'
     ; download successful
@@ -183,7 +183,7 @@ SectionEnd
 Section "install ruby" SEC03
   SetOutPath "$INSTDIR"
   ; download and install
-  NSISdl::download "http://rubyforge.org/frs/download.php/76952/rubyinstaller-1.9.3-p429.exe" "rubyinstaller.exe"
+  NSISdl::download /PROXY "$HTTP_PROXY" "http://rubyforge.org/frs/download.php/76952/rubyinstaller-1.9.3-p429.exe" "rubyinstaller.exe"
   Pop $R0
   ${If} $R0 == 'success'
     ; download successful
