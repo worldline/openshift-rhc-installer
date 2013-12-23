@@ -17,6 +17,9 @@
 !addincludedir .\include
 !include EnvVarUpdate.nsh
 
+; 7zip support
+!addplugindir ".\plugin"
+
 ; MUI Settings
 !define MUI_ABORTWARNING
 !define MUI_ICON "${NSISDIR}\Contrib\Graphics\Icons\modern-install.ico"
@@ -168,7 +171,7 @@ Section "install git bash" SEC02
     ; download successful
     StrCpy $0 ''
     ; run the one click installer
-    ExecWait '"gitinstaller.exe" /silent /nocancel /noicons' $0
+    ExecWait '"gitinstaller.exe" /nocancel' $0
     ${If} $0 == ''
 	  ; execution of one click installer failed
 	  MessageBox MB_OK "git install failed."
@@ -183,18 +186,22 @@ SectionEnd
 Section "install ruby" SEC03
   SetOutPath "$INSTDIR"
   ; download and install
-  NSISdl::download /PROXY "$HTTP_PROXY" "http://rubyforge.org/frs/download.php/76952/rubyinstaller-1.9.3-p429.exe" "rubyinstaller.exe"
+  NSISdl::download /PROXY "$HTTP_PROXY" "http://dl.bintray.com/oneclick/rubyinstaller/ruby-1.9.3-p484-i386-mingw32.7z?direct" "ruby-1.9.3-p484-i386-mingw32.7z"
   Pop $R0
   ${If} $R0 == 'success'
     ; download successful
     StrCpy $0 ''
+    SetOutPath $INSTDIR
+    SetCompress off
+    DetailPrint "Extracting package..."
+    SetDetailsPrint listonly
+    SetCompress auto
+    SetDetailsPrint both
     ; run the one click installer
-    ExecWait '"rubyinstaller.exe" /verysilent /noreboot /nocancel /noicons /dir="$INSTDIR/ruby"' $0
-    ${If} $0 == ''
-	  ; execution of one click installer failed
-	  MessageBox MB_OK "ruby install failed."
-    ${EndIf}
-	Delete "$INSTDIR\rubyinstaller.exe"
+    Nsis7z::ExtractWithDetails "ruby-1.9.3-p484-i386-mingw32.7z" "Installing ruby %s..."
+    Rename "$INSTDIR\ruby-1.9.3-p484-i386-mingw32\" "$INSTDIR\ruby\"
+
+	Delete "$OUTDIR\ruby-1.9.3-p484-i386-mingw32.7z"
   ${Else}
     ; download not successfull
     MessageBox MB_OK "ruby download failed."
