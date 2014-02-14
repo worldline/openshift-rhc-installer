@@ -54,7 +54,13 @@ Page custom libraServerPage libraServerPageLeave
 
 !insertmacro MUI_PAGE_FINISH
 
+Var HTTP_PROXY
+Var rhlogin
+Var libraServerURL
+
 Function RHC_Setup
+  ExecWait '"$PROGRAMFILES\git\bin\sh" -c "export LIBRA_SERVER_PROXY=\"$HTTP_PROXY\" && rhc setup --insecure --create-token --server \"$libraServerURL\" --rhlogin \"$rhlogin\""'
+
   MessageBox MB_OK 'Installation has finished. Now, run "Git Bash" and execute "rhc --help" to start the game ;)'
 FunctionEnd
 
@@ -82,7 +88,6 @@ ShowInstDetails show
 ShowUnInstDetails show
 
 
-Var HTTP_PROXY
 Var proxyDialog
 Var proxyLabel
 Var proxyTextBox
@@ -100,7 +105,7 @@ Function proxyPage
   !insertmacro MUI_HEADER_TEXT "Configure HTTP Proxy (for gem install)" ""
   
   ; === Label ===
-  ${NSD_CreateLabel} 8u 5u 91u 9u "HTTP Proxy"
+  ${NSD_CreateLabel} 8u 5u 91u 9u "Are you behind a HTTP Proxy server?"
   Pop $proxyLabel
   
   ; === TextBox ===
@@ -108,7 +113,7 @@ Function proxyPage
   Pop $proxyTextBox
   
   ; === Checkbox ===
-  ${NSD_CreateCheckbox} 8u 45u 250u 11u "&is OpenShift Server behind the proxy?"
+  ${NSD_CreateCheckbox} 8u 45u 250u 11u "&is OpenShift Server behind the HTTP proxy?"
   Pop $proxyCheckbox
   nsDialogs::Show $proxyDialog
 FunctionEnd
@@ -128,7 +133,10 @@ FunctionEnd
 
 Var libraServerDialog
 Var libraServerLabel
-Var libraServerTextBox
+Var redhatLibraServerRadio
+Var customLibraServerRadio
+Var customLibraServerTextBox
+Var rhloginTextBox
 
 ; dialog create function
 Function libraServerPage
@@ -141,23 +149,63 @@ Function libraServerPage
   ${EndIf}
   !insertmacro MUI_HEADER_TEXT "Configure OpenShift RHC" ""
   
-  ; === Label ===
-  ${NSD_CreateLabel} 8u 5u 91u 9u "OpenShift API URL"
+  ${NSD_CreateLabel} 8u 3u 91u 11u "OpenShift Broker URL:"
   Pop $libraServerLabel
-  
-  ; === TextBox ===
-  ${NSD_CreateText} 8u 16u 124u 11u ""
-  Pop $libraServerTextBox
-  
+
+  ${NSD_CreateRadioButton} 8u 32u 300u 11u "Red Hat's OpenShift Online - https://openshift.redhat.com"
+  Pop $redhatLibraServerRadio
+
+  ${NSD_CreateRadioButton} 8u 48u 38u 11u "Custom:"
+  Pop $customLibraServerRadio
+  ${NSD_CreateText} 50u 48u 155u 11u ""
+  Pop $customLibraServerTextBox
+  ${NSD_OnChange} $customLibraServerTextBox Custom_Libra_Server_Radio_Changed
+
+  ${NSD_CreateHLine} 8u 70u 200u 11u
+  ; ---------------------------------------- ;
+
+  ${NSD_CreateLabel} 8u 98u 72u 11u "OpenShift Login"
+  Pop $0
+  ${NSD_CreateText}  80u 98u 125u 11u ""
+  Pop $rhloginTextBox
   
   nsDialogs::Show $libraServerDialog
 FunctionEnd
 
+Function Custom_Libra_Server_Radio_Changed
+	${NSD_Check}   $customLibraServerRadio
+	${NSD_Uncheck} $redhatLibraServerRadio
+FunctionEnd
+
 ; dialog leave function
 Function libraServerPageLeave
-  ${NSD_GetText} $libraServerTextBox $0
+
+  ${NSD_GetText} $customLibraServerTextBox $libraServerURL
+
+  ${NSD_GetState} $redhatLibraServerRadio $0
+  ${If} $0 == ${BST_CHECKED}
+    StrCpy $libraServerURL "https://openshift.redhat.com"
+  ${EndIf}
+
+  ${NSD_GetState} $customLibraServerRadio $0
+  ${If} $0 == ${BST_CHECKED}
+    ${NSD_GetText} $customLibraServerTextBox $libraServerURL
+  ${EndIf}
+
+  ${If} $libraServerURL == ""
+    MessageBox MB_OK "Please, select one or insert a valid OpenShift broker URL."
+    Abort
+  ${EndIf}
+
+  ${NSD_GetText} $rhloginTextBox $rhlogin
+  ${If} $rhlogin == ""
+    MessageBox MB_OK "Please, inform your login."
+    ${NSD_SetFocus} $rhloginTextBox
+    Abort
+  ${EndIf}
+
   ; set variable
-  WriteRegExpandStr ${env_hklm} "LIBRA_SERVER" "$0"
+  WriteRegExpandStr ${env_hklm} "LIBRA_SERVER" "$libraServerURL"
 FunctionEnd
 
 Function .onInit
