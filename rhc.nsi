@@ -22,7 +22,7 @@
 
 ; MUI Settings
 !define MUI_ABORTWARNING
-!define MUI_ICON "${NSISDIR}\Contrib\Graphics\Icons\modern-install.ico"
+!define MUI_ICON "openshift.ico"
 !define MUI_UNICON "${NSISDIR}\Contrib\Graphics\Icons\modern-uninstall.ico"
 
 ; Language Selection Dialog Settings
@@ -157,6 +157,7 @@ Section "copy files" SEC01
   SetOverwrite ifnewer
   File "rhc"
   File "rhc.bat"
+  File "openshift.ico"
   CreateDirectory "$SMPROGRAMS\OpenShift"
   CreateShortCut "$SMPROGRAMS\OpenShift\rhc.lnk" "$INSTDIR\rhc.bat"
   CreateShortCut "$DESKTOP\rhc.lnk" "$INSTDIR\rhc.bat"
@@ -232,7 +233,7 @@ Section -Post
   WriteRegStr HKLM "${PRODUCT_DIR_REGKEY}" "" "$INSTDIR\rubyinstaller.exe"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayName" "$(^Name)"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "UninstallString" "$INSTDIR\uninst.exe"
-  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayIcon" "$INSTDIR\rubyinstaller.exe"
+  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayIcon" "$INSTDIR\openshift.ico"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayVersion" "${PRODUCT_VERSION}"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "URLInfoAbout" "${PRODUCT_WEB_SITE}"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "Publisher" "${PRODUCT_PUBLISHER}"
@@ -262,6 +263,7 @@ Section Uninstall
   Delete "$SMPROGRAMS\rhc\Website.lnk"
   Delete "$DESKTOP\rhc.lnk"
   Delete "$SMPROGRAMS\rhc\rhc.lnk"
+  Delete "$INSTDIR\openshift.ico"
 
   RMDir "$SMPROGRAMS\rhc"
   RMDir "$INSTDIR"
