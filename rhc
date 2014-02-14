@@ -2,12 +2,12 @@
 # find embedded ruby relative to script
 bindir=`cd -P "${0%/*}/" 2>/dev/null; pwd`
 
-if [ -c "$LIBRA_SERVER_PROXY" ]; then
-	export HTTP_PROXY =$LIBRA_SERVER_PROXY
-	export HTTPS_PROXY=$LIBRA_SERVER_PROXY
+if [ -n "$LIBRA_SERVER_PROXY" ]; then
+	export HTTP_PROXY=$LIBRA_SERVER_PROXY;
+	export HTTPS_PROXY=$LIBRA_SERVER_PROXY;
 else
-    unset HTTP_PROXY
-	unset HTTPS_PROXY
+  unset HTTP_PROXY;
+	unset HTTPS_PROXY;
 fi
 
 exec "$bindir/ruby/bin/ruby" -x "$bindir/ruby/bin/rhc" "$@"
