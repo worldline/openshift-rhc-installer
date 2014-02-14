@@ -46,9 +46,17 @@ Page custom libraServerPage libraServerPageLeave
 
 ; Instfiles page
 !insertmacro MUI_PAGE_INSTFILES
+
 ; Finish page
-!define MUI_FINISHPAGE_RUN "rhc.bat"
+!define MUI_FINISHPAGE_RUN
+!define MUI_FINISHPAGE_RUN_TEXT "Run Initial RHC Setup (recomended)"
+!define MUI_FINISHPAGE_RUN_FUNCTION "RHC_Setup"
+
 !insertmacro MUI_PAGE_FINISH
+
+Function RHC_Setup
+  MessageBox MB_OK 'Installation has finished. Now, run "Git Bash" and execute "rhc --help" to start the game ;)'
+FunctionEnd
 
 ; Uninstaller pages
 !insertmacro MUI_UNPAGE_INSTFILES
