@@ -8,6 +8,10 @@
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\${PRODUCT_NAME}"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 !define PRODUCT_UNINST_ROOT_KEY "HKLM"
+!define GIT_INSTALLER "Git-1.8.1.2-preview20130201.exe"
+
+!define RUBY_VERSION "ruby-1.9.3-p484-i386-mingw32"
+!define RUBY_INSTALLER "${RUBY_VERSION}.7z"
 
 ; MUI 1.67 compatible ------
 !include "MUI.nsh"
@@ -166,18 +170,18 @@ SectionEnd
 Section "install git bash" SEC02
   SetOutPath "$INSTDIR"
   ; download and install
-  NSISdl::download /PROXY "$HTTP_PROXY" "https://msysgit.googlecode.com/files/Git-1.8.1.2-preview20130201.exe" "gitinstaller.exe"
+  NSISdl::download /PROXY "$HTTP_PROXY" "https://msysgit.googlecode.com/files/${GIT_INSTALLER}" "${GIT_INSTALLER}"
   Pop $R0
   ${If} $R0 == 'success'
     ; download successful
     StrCpy $0 ''
     ; run the one click installer
-    ExecWait '"gitinstaller.exe" /nocancel' $0
+    ExecWait '"${GIT_INSTALLER}" /nocancel' $0
     ${If} $0 == ''
 	  ; execution of one click installer failed
 	  MessageBox MB_OK "git install failed."
     ${EndIf}
-	Delete "$INSTDIR\gitinstaller.exe"
+	Delete "$INSTDIR\${GIT_INSTALLER}"
   ${Else}
     ; download not successfull
     MessageBox MB_OK "git download failed."
@@ -187,7 +191,7 @@ SectionEnd
 Section "install ruby" SEC03
   SetOutPath "$INSTDIR"
   ; download and install
-  NSISdl::download /PROXY "$HTTP_PROXY" "http://dl.bintray.com/oneclick/rubyinstaller/ruby-1.9.3-p484-i386-mingw32.7z?direct" "ruby-1.9.3-p484-i386-mingw32.7z"
+  NSISdl::download /PROXY "$HTTP_PROXY" "http://dl.bintray.com/oneclick/rubyinstaller/${RUBY_INSTALLER}?direct" "${RUBY_INSTALLER}"
   Pop $R0
   ${If} $R0 == 'success'
     ; download successful
@@ -199,10 +203,10 @@ Section "install ruby" SEC03
     SetCompress auto
     SetDetailsPrint both
     ; run the one click installer
-    Nsis7z::ExtractWithDetails "ruby-1.9.3-p484-i386-mingw32.7z" "Installing ruby %s..."
-    Rename "$INSTDIR\ruby-1.9.3-p484-i386-mingw32\" "$INSTDIR\ruby\"
+    Nsis7z::ExtractWithDetails "${RUBY_INSTALLER}" "Installing ruby %s..."
+    Rename "$INSTDIR\${RUBY_VERSION}\" "$INSTDIR\ruby\"
 
-	Delete "$OUTDIR\ruby-1.9.3-p484-i386-mingw32.7z"
+	Delete "$OUTDIR\${RUBY_INSTALLER}"
   ${Else}
     ; download not successfull
     MessageBox MB_OK "ruby download failed."
